@@ -1,0 +1,31 @@
+steps:
+  # Docker Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 
+           'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/myimage', 
+           '.']
+
+  # Docker Push
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 
+           'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/myimage']
+
+  - name: 'ubuntu'
+    entrypoint: bash
+    args: 
+      - '-c'
+      - |-
+        apt-get update
+        apt-get -y install wget
+        apt-get -y install default-jdk
+        wget https://github.com/zaproxy/zaproxy/releases/download/v2.11.1/ZAP_2.11.1_Linux.tar.gz
+        mkdir zap
+        tar -xvf ZAP_2.11.1_Linux.tar.gz
+        cd ZAP_2.11.1
+        ./zap.sh -cmd -quickurl https://trucklots.com -quickprogress -quickout ../zap_report.html 
+   
+artifacts:
+  objects:
+    location: 'gs://cdnstoragebucket001241'
+    paths:
+      - zap_report.html 
